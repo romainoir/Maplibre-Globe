@@ -1,0 +1,67 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <title>Globe + Terrain + Urban Density Heatmap from Infrastructure</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.12.0/dist/maplibre-gl.css" />
+  <script src="https://unpkg.com/maplibre-gl@5.12.0/dist/maplibre-gl.js"></script>
+  <script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
+  <script src="https://unpkg.com/maplibre-contour@0.0.5/dist/index.min.js"></script>
+  <link rel="stylesheet" href="styles/globe.css" />
+
+</head>
+<body>
+  <div id="map"></div>
+
+  <div class="panel" id="panel">
+    <div class="panel-control">
+      <div class="control-main">
+        <span class="control-icon" aria-hidden="true">📅</span>
+        <div class="control-body">
+          <div class="slider-wrapper">
+            <input type="range" id="doy" min="1" max="366" step="1" />
+          </div>
+          <div class="control-meta">
+            <span class="value" id="dateValue"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-control panel-control--time">
+      <div class="control-main">
+        <span class="control-icon" aria-hidden="true">🕒</span>
+        <div class="control-body">
+          <div class="slider-wrapper slider-wrapper--time">
+            <div class="time-gradient" id="timeGradient"></div>
+            <input class="time-slider" type="range" id="minutes" min="0" max="1439" step="1" />
+          </div>
+          <div class="control-meta">
+            <span class="value" id="timeValue"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="celestial-info" id="celestialInfo">
+    <div class="body">
+      <span class="label sun-label">☀️ Sun:</span>
+      <span id="sunInfo">Loading...</span>
+    </div>
+    <div class="body">
+      <span class="label moon-label">🌙 Moon:</span>
+      <span id="moonInfo">Loading...</span>
+    </div>
+  </div>
+
+  <script type="module" src="scripts/main.js"></script>
+
+</body>
+</html>
+
+
+
+
+
