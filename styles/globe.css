@@ -156,3 +156,27 @@
     }
     .sun-label { color: #FFD700; }
     .moon-label { color: #B0C4DE; }
+
+    .maplibregl-ctrl-attrib.attribution-hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .maplibregl-ctrl-attrib.attribution-hidden:hover {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    @media (max-width: 768px) {
+      .panel {
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 48px);
+        max-width: 420px;
+      }
+      .celestial-info {
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 48px);
+        max-width: 420px;
+      }
+    }

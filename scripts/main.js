@@ -281,13 +281,11 @@ async function initMap() {
 
     window.map = mapInstance;
 
-    mapInstance.addControl(
-      new maplibregl.NavigationControl({ visualizePitch: true, showZoom: true, showCompass: true }),
-    );
-    mapInstance.addControl(new maplibregl.GlobeControl());
-    mapInstance.addControl(new maplibregl.TerrainControl({ source: 'terrainSource', exaggeration: 1 }));
-
     mapInstance.on('load', () => {
+      const attributionControl = document.querySelector('.maplibregl-ctrl-attrib');
+      if (attributionControl) {
+        attributionControl.classList.add('attribution-hidden');
+      }
       initializeMapLayers(mapInstance);
       applyStaticStyle(mapInstance);
       onAnyChange();
