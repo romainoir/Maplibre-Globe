@@ -1,5 +1,5 @@
 # Night Lights Globe
-
+![Night Lights Globe](images/example_globe.PNG)
 This project renders a MapLibre globe with a custom "urban heat" visualization that blends raster heatmaps, vector glow layers, and dynamic night lighting. Acontrol panel lets you scrub through the day of year and local time.
 SunCalc-derived celestial data drives the lighting, day/night terminator.
 
@@ -20,4 +20,5 @@ SunCalc-derived celestial data drives the lighting, day/night terminator.
    or `npx serve .` if you have Node installed.
 2. Open `http://localhost:8000/index.html` in a modern browser.
 3. Use the sliders to scrub through daylight/times and observe the night lighting, celestial markers, and heatmap vectors updating in real time.
+
 
