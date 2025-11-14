@@ -42,14 +42,89 @@ const VECTOR_FAMILIES = [
 
 const EARTH_CIRCUMFERENCE = 40075016.686;
 const MINUTES_PER_DAY = 1440;
+const HASH_KEYS = {
+  map: 'map',
+  date: 'date',
+  time: 'time',
+};
 
 const radiusListenerKey = '__staticRadiusListener';
-const currentYear = new Date().getFullYear();
+let currentYear = new Date().getFullYear();
 const doyInput = document.getElementById('doy');
 const minutesInput = document.getElementById('minutes');
 const dateValue = document.getElementById('dateValue');
 const timeValue = document.getElementById('timeValue');
 const timeGradient = document.getElementById('timeGradient');
+
+function getHashParam(key, decodeValue = true) {
+  const encodedKey = encodeURIComponent(key);
+  const fragments = window.location.hash.slice(1).split('&');
+  for (const fragment of fragments) {
+    if (!fragment) continue;
+    const [fragmentKey, ...fragmentValue] = fragment.split('=');
+    if (fragmentKey !== encodedKey) continue;
+    const rawValue = fragmentValue.length ? fragmentValue.join('=') : '';
+    return decodeValue ? decodeURIComponent(rawValue) : rawValue;
+  }
+  return null;
+}
+
+function upsertHashParam(key, value, encodeValue = true) {
+  const encodedKey = encodeURIComponent(key);
+  const fragments = window.location.hash.slice(1).split('&').filter(Boolean);
+  let replaced = false;
+  const updatedFragments = fragments.map((fragment) => {
+    const [fragmentKey] = fragment.split('=');
+    if (fragmentKey !== encodedKey) return fragment;
+    replaced = true;
+    const serializedValue = encodeValue ? encodeURIComponent(value) : value;
+    return `${encodedKey}=${serializedValue}`;
+  });
+  if (!replaced) {
+    const serializedValue = encodeValue ? encodeURIComponent(value) : value;
+    updatedFragments.push(`${encodedKey}=${serializedValue}`);
+  }
+  const hashString = updatedFragments.length ? `#${updatedFragments.join('&')}` : '';
+  const baseUrl = window.location.href.replace(/(#.*)?$/, '');
+  const nextLocation = `${baseUrl}${hashString}`;
+  if (nextLocation !== window.location.href) {
+    window.history.replaceState(window.history.state, '', nextLocation);
+  }
+}
+
+function updateDateTimeHash(date) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return;
+  upsertHashParam(HASH_KEYS.date, fmtDate(date), false);
+  upsertHashParam(HASH_KEYS.time, fmtTime(date), false);
+}
+
+function readDateTimeFromHash() {
+  const storedDate = getHashParam(HASH_KEYS.date);
+  if (!storedDate) return null;
+  const [y, m, d] = storedDate.split('-').map((part) => Number(part));
+  if (![y, m, d].every((value) => Number.isFinite(value))) return null;
+  const candidate = new Date(y, m - 1, d);
+  if (
+    Number.isNaN(candidate.getTime()) ||
+    candidate.getFullYear() !== y ||
+    candidate.getMonth() !== m - 1 ||
+    candidate.getDate() !== d
+  ) {
+    return null;
+  }
+  const storedTime = getHashParam(HASH_KEYS.time);
+  if (storedTime) {
+    const [hoursPart, minutesPart] = storedTime.split(':');
+    const hours = Math.max(0, Math.min(23, Number(hoursPart)));
+    const minutes = Math.max(0, Math.min(59, Number(minutesPart)));
+    if (Number.isFinite(hours) && Number.isFinite(minutes)) {
+      candidate.setHours(hours, minutes, 0, 0);
+      return candidate;
+    }
+  }
+  candidate.setHours(0, 0, 0, 0);
+  return candidate;
+}
 
 function reflectLabels(dayOfYear, minutes) {
   const date = setLocalTime(dateFromYearAndDoy(currentYear, dayOfYear), minutes);
@@ -73,20 +148,26 @@ function currentSliderDate() {
 }
 
 function onAnyChange() {
+  const date = currentSliderDate();
+  updateDateTimeHash(date);
   const map = window.map;
   if (!map) return;
-  const date = currentSliderDate();
   const center = map.getCenter();
   applyAutoSky(map, date, center.lat, center.lng, skyOptions, { zoomEasing: true });
   updateSunEvents(date, center.lat, center.lng);
 }
 
 function initControls() {
-  const now = new Date();
-  doyInput.value = doyFromDate(now);
-  minutesInput.value = minutesOfDayFromDate(now);
-  clampDayOfYear(Number(doyInput.value));
-  reflectLabels(Number(doyInput.value), Number(minutesInput.value));
+  const persisted = readDateTimeFromHash();
+  const initialDate = persisted ?? new Date();
+  currentYear = initialDate.getFullYear();
+
+  const initialDay = clampDayOfYear(doyFromDate(initialDate));
+  const initialMinutes = minutesOfDayFromDate(initialDate);
+  doyInput.value = initialDay;
+  minutesInput.value = initialMinutes;
+  reflectLabels(initialDay, initialMinutes);
+  updateDateTimeHash(initialDate);
 
   ['input', 'change'].forEach((evt) => {
     doyInput.addEventListener(evt, onAnyChange);
@@ -269,7 +350,7 @@ async function initMap() {
 
     const mapInstance = new maplibregl.Map({
       container: 'map',
-      hash: true,
+      hash: HASH_KEYS.map,
       center: [137.9150899566626, 36.25956997955441],
       zoom: 2,
       pitch: 0,
